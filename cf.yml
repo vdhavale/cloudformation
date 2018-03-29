@@ -1,0 +1,59 @@
+Resources:
+  cluster:
+    Type: "AWS::EMR::Cluster"
+    Properties:
+      BootstrapActions:
+        -
+          Name: WatchTowerBootStrapAction
+          ScriptBootstrapAction:
+            Path: "s3://lookout-dw-dev/EMRlogs/lamda/bootstrap_prod.sh"
+      Instances:
+        MasterInstanceGroup:
+          InstanceCount: 1
+          InstanceType: "m1.medium"
+          Market: "ON_DEMAND"
+          Name: "Master"
+        CoreInstanceGroup:
+          InstanceCount: 1
+          InstanceType: "m1.medium"
+          Market: "ON_DEMAND"
+          Name: "Core"
+        Ec2KeyName: 'emrvishal'
+        Ec2SubnetId: 'subnet-4aeb1601'
+      #TerminationProtected: true
+      Applications:
+      - Name: Hive
+      - Name: Spark
+      VisibleToAllUsers: true
+      #Ec2KeyName: 'emrvishal'
+      #Ec2SubnetId: 'subnet-4aeb1601'
+      Name: "CloudeformationEMR"
+      JobFlowRole: "EMR_EC2_DefaultRole"
+      ServiceRole: "EMR_DefaultRole"
+      ReleaseLabel: "emr-5.12.0"
+      Configurations:
+      - Classification: hdfs-site
+        ConfigurationProperties:
+          dfs.block.size: '268435456'
+          dfs.replication: '2'
+          dfs.namenode.handler.count: '100'
+          dfs.namenode.datanode.registration.ip-hostname-check: "false"
+      - Classification: hive-site
+        ConfigurationProperties:
+          hive.execution.engine: mr
+          hive.metastore.client.factory.class: "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
+      - Classification: spark-defaults
+        ConfigurationProperties:
+          spark.executor.memory: 3G
+          spark.master: 'yarn'
+          spark.eventLog.enabled: 'true'
+      Tags:
+        -
+          Key: service
+          Value: EMR
+        -
+          Key: product
+          Value: data-analytics
+        -
+          Key: dns_name
+          Value: cloudformation.emr.lk.com
